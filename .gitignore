@@ -9,3 +9,5 @@ __pycache__/
 .claude/settings.local.json
 # gitingest dump of the upstream repo (20 MB, redundant with ai-engineering-from-scratch/)
 rohitg00-ai-engineering-from-scratch-*.txt
+# browser test artefacts
+.playwright-mcp/

@@ -4,7 +4,8 @@ Commands
 --------
 build              extract everything -> build/graph.json + build/report.md
 export             graph.json -> Obsidian vault (vault/)
-all                build then export
+html               graph.json + lesson texts -> static site (site/); --single-file adds dist/*.html
+all                build, export, html
 report             print build/report.md
 prereqs REF        transitive prerequisites of a lesson (REF like 10/04)
 dependents REF     lessons that build on a lesson
@@ -79,9 +80,21 @@ def cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_html(args: argparse.Namespace) -> int:
+    from kg.html.export import export_site
+
+    paths = _paths(args)
+    g = _load(paths)
+    stats = export_site(g, paths, single_file=args.single_file)
+    print(f"site:  {paths.site_dir}  ({stats.lessons} lessons, {stats.files} files, {stats.bytes / 1e6:.1f} MB)")
+    print(f"open:  {paths.site_dir / 'index.html'}")
+    if stats.single_file:
+        print(f"single file: {stats.single_file}  ({stats.single_bytes / 1e6:.1f} MB)")
+    return 0
+
+
 def cmd_all(args: argparse.Namespace) -> int:
-    rc = cmd_build(args)
-    return rc or cmd_export(args)
+    return cmd_build(args) or cmd_export(args) or cmd_html(args)
 
 
 def cmd_report(args: argparse.Namespace) -> int:
@@ -210,9 +223,13 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--min-resource-lessons", type=int, default=2,
                    help="resources need this many citing lessons to get their own note (default 2)")
     e.set_defaults(fn=cmd_export)
+    w = sub.add_parser("html", help="static HTML site: no server, no install, opens from a file")
+    w.add_argument("--single-file", action="store_true", help="also write dist/*.html with everything inlined")
+    w.set_defaults(fn=cmd_html)
     a = sub.add_parser("all")
     a.add_argument("--min-concept-lessons", type=int, default=2)
     a.add_argument("--min-resource-lessons", type=int, default=2)
+    a.add_argument("--single-file", action="store_true")
     a.set_defaults(fn=cmd_all)
     sub.add_parser("report").set_defaults(fn=cmd_report)
 

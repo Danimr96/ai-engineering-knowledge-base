@@ -160,6 +160,17 @@ Obsidian's data model is simple: a folder of markdown files, where every file is
 
 **Config** (`config.py`). `.obsidian/graph.json` colour groups are an ordered list of search queries; the first match wins, so `tag:#status/done` comes before `path:Lessons`. `.obsidian/app.json` hides `Upstream/` (a symlink to the upstream `phases/` folder) from search and the graph while keeping its notes openable, so the lesson text renders inside Obsidian with its mermaid diagrams. Bases files are YAML: a global `filters` block, then `views` with `order` (columns) and `sort`.
 
+## 6b. The site (`kg/html/`)
+
+The second projection of the same graph, for readers without Obsidian. One constraint shapes all of it: **the page must run from a `file://` URL**, because that is what "unzip it from a shared drive" means.
+
+- **No `fetch`, no ES modules.** Browsers block both on `file://`. So data ships as JavaScript that assigns to a global (`data/graph.js`), and each lesson is a small script the page adds on demand (`data/lessons/10-04.js` calls `window.__kgRes(path, payload)`). It is the old JSONP trick, used here for the reason it was invented.
+- **Markdown is rendered in Python** (`render_md.py`), not in the browser. Two passes: blocks, then inline. Every character of lesson text is escaped; the only tags in the output are the ones the renderer writes. That is what makes it safe to insert as HTML, and it is testable with pytest instead of by eye. The one subtle bug it had is kept as a regression test: a code span inside a link label is rendered by a nested call, which must share the outer call's stash of protected pieces.
+- **The payload is an allow-list** (`data.py`). `graph.json` is 8 MB; the page gets 3.5 MB because provenance and personal progress are dropped and edges reference nodes by position. Your route survives as one more learning path; your `status` does not, because the site is for many readers and each keeps their own progress in `localStorage`.
+- **One page, two packagings** (`export.py`). The page asks a loader for a resource by path. The loader first looks for an inlined copy (`<script type="text/plain" data-res="…">`, inert until needed) and only then adds a `<script src>`. So the single-file build is the same code with different plumbing. Inlining JavaScript in HTML has one trap: the HTML parser ends a script at the first `</script`, even inside a string. `inline_safe` rewrites it as `<\/script`, which JavaScript reads as the same thing.
+- **Reuse before writing.** Mermaid is vendored for the 390 diagrams. The 531 interactive figures are the curriculum's own widgets: the exporter copies its figure scripts and maps the CSS variables they expect onto the site's colours.
+- **The look is a transit map**, and the layout is computed, not drawn: rows from the longest chain of prerequisites, columns to keep branches apart, a routing rule that never runs a line through a station (`phaseLayout` and `phaseMap` in `assets/app.js`).
+
 ## 7. Using it
 
 1. `./kg.sh all`, open `vault/` in Obsidian, start at `Home.md`.

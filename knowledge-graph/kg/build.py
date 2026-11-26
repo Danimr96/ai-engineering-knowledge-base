@@ -15,6 +15,7 @@ Outputs
 
 from __future__ import annotations
 
+import re
 import subprocess
 from datetime import datetime, timezone
 
@@ -36,7 +37,19 @@ from kg.report import BuildStats, render_report
 
 
 def upstream_commit(paths: Paths) -> str | None:
-    """Short hash of the upstream clone, read-only, so the graph says which version it reflects."""
+    """Short hash of the curriculum version the graph reflects.
+
+    When the curriculum is vendored (no ``.git`` of its own), the commit is the
+    one recorded in ``UPSTREAM.md``. Asking git there would answer with the
+    commit of the *enclosing* repository, which is a different thing.
+    """
+    note = paths.root / "UPSTREAM.md"
+    if note.is_file():
+        m = re.search(r"^- Commit:\s*([0-9a-f]{7,40})\s*$", note.read_text(encoding="utf-8"), re.M)
+        if m:
+            return m.group(1)[:8]
+    if not (paths.upstream / ".git").exists():
+        return None
     try:
         out = subprocess.run(
             ["git", "-C", str(paths.upstream), "rev-parse", "--short", "HEAD"],

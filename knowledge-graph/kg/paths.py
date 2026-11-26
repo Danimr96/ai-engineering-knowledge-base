@@ -26,6 +26,8 @@ The layout this object encodes::
         data/                          <- hand-maintained inputs
         build/                         <- generated graph.json + report.md
         vault/                         <- generated Obsidian vault
+        site/                          <- generated static HTML site
+        dist/                          <- generated single-file HTML build
 """
 
 from __future__ import annotations
@@ -125,6 +127,16 @@ class Paths:
     @property
     def vault_dir(self) -> Path:
         return self.kg_dir / "vault"
+
+    @property
+    def site_dir(self) -> Path:
+        """The static HTML site (a folder you can zip or serve)."""
+        return self.kg_dir / "site"
+
+    @property
+    def dist_dir(self) -> Path:
+        """Single-file builds. Large and fully derived, so not committed."""
+        return self.kg_dir / "dist"
 
     # ---- helpers ------------------------------------------------------
     def rel(self, path: Path) -> str:

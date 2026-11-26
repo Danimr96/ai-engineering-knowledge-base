@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 # per-machine Obsidian window state
 vault/.obsidian/workspace*.json
+# single-file HTML builds (tens of MB, fully derived): ./kg.sh html --single-file
+dist/
