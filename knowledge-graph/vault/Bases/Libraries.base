@@ -1,0 +1,13 @@
+filters:
+  and:
+    - file.inFolder("Libraries")
+views:
+  - type: table
+    name: Most used
+    order:
+      - file.name
+      - language
+      - used_by
+    sort:
+      - property: used_by
+        direction: DESC

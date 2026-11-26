@@ -1,0 +1,14 @@
+filters:
+  and:
+    - file.inFolder("Communities")
+views:
+  - type: table
+    name: Clusters
+    order:
+      - file.name
+      - lessons
+      - concepts
+      - phases
+    sort:
+      - property: num
+        direction: ASC

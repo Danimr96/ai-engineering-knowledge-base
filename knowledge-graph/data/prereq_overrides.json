@@ -1,0 +1,7 @@
+{
+  "_comment": "Hand-made fixes for prerequisite strings the parser cannot resolve (titles without numbers, mistakes upstream). Keys are lesson ids; 'add' and 'drop' list target ids (lesson:NN/MM or phase:N). Edges added here carry confidence 'low' and via 'override'. Look at build/report.md -> 'Unparsed prerequisite fragments' to find candidates.",
+  "lesson:08/13": {
+    "add": ["lesson:01/04"],
+    "note": "Header says 'Phase 1 · Calculus' with no number; 01/04 is Calculus for Machine Learning."
+  }
+}

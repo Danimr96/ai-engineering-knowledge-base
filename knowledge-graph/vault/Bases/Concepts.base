@@ -1,0 +1,38 @@
+filters:
+  and:
+    - file.inFolder("Concepts")
+views:
+  - type: table
+    name: Glossary concepts
+    filters:
+      and:
+        - canonical == true
+    order:
+      - file.name
+      - category
+      - taught_in
+    sort:
+      - property: taught_in
+        direction: DESC
+  - type: table
+    name: Lesson-only terms
+    filters:
+      and:
+        - canonical == false
+    order:
+      - file.name
+      - taught_in
+    sort:
+      - property: taught_in
+        direction: DESC
+  - type: table
+    name: By category
+    order:
+      - file.name
+      - category
+      - taught_in
+    sort:
+      - property: category
+        direction: ASC
+      - property: file.name
+        direction: ASC

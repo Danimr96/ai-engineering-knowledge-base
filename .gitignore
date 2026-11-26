@@ -1,0 +1,11 @@
+.DS_Store
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+# former nested git dirs, kept as a local backup
+.git.nested-backup/
+# local Claude Code permissions (machine-specific)
+.claude/settings.local.json
+# gitingest dump of the upstream repo (20 MB, redundant with ai-engineering-from-scratch/)
+rohitg00-ai-engineering-from-scratch-*.txt

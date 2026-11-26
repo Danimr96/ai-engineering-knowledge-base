@@ -1,0 +1,14 @@
+filters:
+  and:
+    - file.inFolder("Artifacts")
+views:
+  - type: table
+    name: All artifacts
+    order:
+      - file.name
+      - kind
+      - lesson
+      - version
+    sort:
+      - property: lesson
+        direction: ASC

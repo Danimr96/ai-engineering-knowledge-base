@@ -1,0 +1,58 @@
+filters:
+  and:
+    - file.inFolder("Lessons")
+views:
+  - type: table
+    name: All lessons
+    order:
+      - file.name
+      - phase
+      - lesson_type
+      - time_min
+      - status
+      - prereqs
+      - concepts
+      - community
+      - libraries
+    sort:
+      - property: phase
+        direction: ASC
+      - property: num
+        direction: ASC
+  - type: table
+    name: By community
+    order:
+      - file.name
+      - community
+      - phase
+      - status
+    sort:
+      - property: community
+        direction: ASC
+      - property: phase
+        direction: ASC
+  - type: table
+    name: Done
+    filters:
+      and:
+        - status == "done"
+    order:
+      - file.name
+      - phase
+      - time_min
+      - status
+  - type: table
+    name: Build lessons
+    filters:
+      and:
+        - lesson_type == "build"
+    order:
+      - file.name
+      - phase
+      - time_min
+      - status
+    sort:
+      - property: phase
+        direction: ASC
+      - property: num
+        direction: ASC

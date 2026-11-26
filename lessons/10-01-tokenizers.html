@@ -1,0 +1,434 @@
+<title>Bytes to Tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F2F4F6; --surface:#FFFFFF; --ink:#1B1F24; --muted:#5B6672; --line:#D6DCE2;
+  --accent:#0E7C86; --accent-soft:#DCEFF1; --accent-ink:#0A5C64;
+  --pass:#1D8657; --pass-soft:#DCF1E6; --fail:#C23B2A; --fail-soft:#F8E1DD; --warn:#A86B12; --warn-soft:#F6EAD3;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a;
+  --m0:#E7EEF3; --m1:#CFE6E9; --m2:#A9D5DA; --m3:#7FC1C9; --m4:#4FA7B1; --m5:#2A8C97;
+  --display:"Sora","Avenir Next","Segoe UI",sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#121417; --surface:#1B1F24; --ink:#E6EAEE; --muted:#97A3AF; --line:#2C343C;
+    --accent:#5CC4CD; --accent-soft:#163338; --accent-ink:#8FD9E0;
+    --pass:#4CC38A; --pass-soft:#14301F; --fail:#F07564; --fail-soft:#3A1C18; --warn:#E3A94B; --warn-soft:#352812;
+    --c1:#3987e5; --c2:#d95926; --c3:#199e70;
+    --m0:#232A31; --m1:#1E3D42; --m2:#1F5359; --m3:#236A72; --m4:#2A838D; --m5:#3AA3AE;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#121417; --surface:#1B1F24; --ink:#E6EAEE; --muted:#97A3AF; --line:#2C343C;
+  --accent:#5CC4CD; --accent-soft:#163338; --accent-ink:#8FD9E0;
+  --pass:#4CC38A; --pass-soft:#14301F; --fail:#F07564; --fail-soft:#3A1C18; --warn:#E3A94B; --warn-soft:#352812;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70;
+  --m0:#232A31; --m1:#1E3D42; --m2:#1F5359; --m3:#236A72; --m4:#2A838D; --m5:#3AA3AE;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;padding-inline:20px;padding-block:40px 80px}
+.wrap{max-width:680px;margin-inline:auto}
+.bench{max-width:980px;margin-inline:auto;margin-top:1.25rem}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.2rem,6vw,3.3rem);font-weight:700;letter-spacing:-0.02em}
+h2{font-size:1.6rem;font-weight:700;letter-spacing:-0.01em}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+section{display:flex;flex-direction:column;gap:1.2rem;margin-block:3.5rem 0}
+header{display:flex;flex-direction:column;gap:1rem}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.step{font-family:var(--mono);font-size:.78rem;color:var(--accent);letter-spacing:.06em}
+.lede{font-size:1.18rem;color:var(--muted)}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.num{font-variant-numeric:tabular-nums}
+strong{font-weight:600}
+a{color:var(--accent-ink)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1.4rem;display:flex;flex-direction:column;gap:1rem}
+.callout{border-left:3px solid var(--accent);padding:.2rem 0 .2rem 1rem}
+.callout.warn{border-color:var(--warn)}
+ul.plain,ol.plain{margin:0;padding-left:1.3rem;display:flex;flex-direction:column;gap:.45rem}
+
+/* predict + quiz */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem}
+.opt{font:inherit;font-size:.98rem;text-align:left;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:.65rem .9rem;cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.opt.right{background:var(--pass-soft);border-color:var(--pass)}
+.opt.wrong{background:var(--fail-soft);border-color:var(--fail)}
+.opt[disabled]{cursor:default}
+.reveal{background:var(--accent-soft);border-radius:8px;padding:1rem 1.1rem}
+
+/* token chips */
+.stream{display:flex;flex-wrap:wrap;gap:4px;line-height:1;align-items:flex-end}
+.tok{font-family:var(--mono);font-size:.95rem;padding:.35rem .45rem;border-radius:5px;background:var(--m0);border:1px solid var(--line);white-space:pre;position:relative}
+.tok.g1{background:var(--m1)} .tok.g2{background:var(--m2)} .tok.g3{background:var(--m3)} .tok.g4{background:var(--m4);color:#fff} .tok.g5{background:var(--m5);color:#fff}
+.tok.hit{outline:2px solid var(--c2);outline-offset:1px}
+.tok.sp{background:transparent;border-style:dashed;color:var(--muted)}
+.tok.wordgap{margin-right:.7rem}
+.strategy{display:grid;grid-template-columns:8rem 1fr auto;gap:.6rem 1rem;align-items:center}
+.strategy .lbl{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.strategy .cnt{font-family:var(--mono);font-size:.85rem;white-space:nowrap}
+
+/* stepper */
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.btn{font:inherit;font-family:var(--mono);font-size:.82rem;font-weight:600;background:var(--accent);color:#fff;border:0;border-radius:6px;padding:.5rem .9rem;cursor:pointer}
+.btn.sec{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn[disabled]{opacity:.45;cursor:default}
+textarea{font:inherit;font-family:var(--mono);font-size:.88rem;width:100%;min-height:64px;padding:.6rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+.stats{display:flex;flex-wrap:wrap;gap:1.2rem;font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.stats b{color:var(--ink);font-size:1rem}
+.pairs{display:grid;grid-template-columns:auto 1fr auto;gap:.3rem .8rem;font-family:var(--mono);font-size:.82rem;align-items:center}
+.pairs .bar{height:10px;background:var(--m3);border-radius:3px}
+.pairs .win{color:var(--c2);font-weight:600}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+input[type=text],input[type=number]{font:inherit;font-family:var(--mono);font-size:.9rem;padding:.45rem .55rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.ctl{display:flex;flex-direction:column;gap:.3rem}
+.ctl label{font-family:var(--mono);font-size:.76rem;color:var(--muted);display:flex;justify-content:space-between}
+.ctl output{color:var(--ink);font-weight:600}
+
+/* bytes */
+.bytes{display:grid;grid-template-columns:auto 1fr;gap:.5rem 1rem;align-items:center;font-family:var(--mono);font-size:.85rem}
+.bytes .b{display:inline-flex;gap:3px;flex-wrap:wrap}
+.bytes .b span{background:var(--m0);border:1px solid var(--line);border-radius:4px;padding:.15rem .4rem}
+.bytes .ch{font-size:1.3rem}
+
+/* chart */
+.chart-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem;align-items:baseline}
+.legend{display:flex;flex-wrap:wrap;gap:1rem;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:.4rem;vertical-align:-1px}
+.chart{width:100%;height:auto;overflow:visible}
+.chart text{font-family:var(--mono);font-size:11px;fill:var(--muted)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .base{stroke:var(--ink);stroke-width:1.5}
+.chart .bar{rx:0}
+.chart .bar:hover{opacity:.8}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:.76rem;padding:.35rem .55rem;border-radius:5px;white-space:nowrap;transform:translate(-50%,-115%)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:520px}
+th,td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:400}
+td.n{text-align:right;font-family:var(--mono)}
+details summary{cursor:pointer;font-family:var(--mono);font-size:.8rem;color:var(--accent-ink)}
+
+pre{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:1rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.8rem;line-height:1.55}
+.q{display:flex;flex-direction:column;gap:.7rem;padding-block:1.2rem;border-top:1px solid var(--line)}
+.q .opts{grid-template-columns:1fr}
+.q .why{font-size:.95rem;color:var(--muted)}
+.score{font-family:var(--mono);font-size:.82rem;color:var(--muted)}
+footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--line);font-family:var(--mono);font-size:.74rem;color:var(--muted);display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main>
+<header class="wrap">
+  <div class="eyebrow">Phase 10 · LLMs from scratch · Lesson 01 · source: phases/10-llms-from-scratch/01-tokenizers</div>
+  <h1>Bytes to tokens</h1>
+  <p class="lede">A model never sees text. It sees a list of integers, and the tokenizer decides what those integers mean. Today you watch BPE build a vocabulary one merge at a time, then you write it yourself.</p>
+</header>
+
+<section class="wrap">
+  <div class="step">PREDICT FIRST</div>
+  <h2>How many tokens is <code>hipotecario</code> in GPT-4's tokenizer?</h2>
+  <p>Eleven characters, one ordinary Spanish word. GPT-4's tokenizer (cl100k, 100k vocabulary) was trained mostly on English.</p>
+  <div class="opts" id="predict">
+    <button class="opt">1 token</button>
+    <button class="opt">2 tokens</button>
+    <button class="opt" data-right>3 tokens</button>
+    <button class="opt">11 tokens</button>
+  </div>
+  <div class="reveal" id="predict-reveal" hidden>
+    <strong>3 tokens:</strong> <code>hip</code> · <code>otec</code> · <code>ario</code>. None of them is a Spanish morpheme. <code>mortgage</code>, the English equivalent, is 2. The model has to learn that this odd trio means "mortgage-related" from data, and you pay for three positions of context instead of two. Measured with tiktoken, not estimated.
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="step">01 · THREE WAYS TO CUT TEXT</div>
+  <h2>Words are too many, characters are too long</h2>
+  <p>Any tokenizer has to choose the size of its pieces. Here is <code>preaprobación</code> under the three strategies. The last row is what GPT-4 actually does.</p>
+</section>
+<div class="bench"><div class="panel">
+  <div class="strategy" id="strategies"></div>
+  <p class="callout" style="margin-top:.4rem">Word-level needs a token for every word form in every language, and gives up with <code>[UNK]</code> on anything new. Character-level never fails but makes every sequence 4–5× longer, so attention pays for spelling. Subword keeps common pieces whole and builds rare words from parts. Every modern LLM uses subwords; the question is which algorithm chooses the pieces.</p>
+</div></div>
+
+<section class="wrap">
+  <div class="step">02 · LAB A</div>
+  <h2>Watch BPE learn</h2>
+  <p>Byte Pair Encoding is a 1994 compression trick. Start with single characters. Count every adjacent pair. Merge the most frequent pair into a new token. Repeat. The ordered list of merges <em>is</em> the tokenizer.</p>
+  <p>Edit the corpus if you like, then press <strong>Merge</strong> and watch the winning pair fuse across the whole stream. Darker chips are newer tokens.</p>
+</section>
+<div class="bench"><div class="panel">
+  <textarea id="corpus" aria-label="Training corpus">hipoteca hipotecario hipotecas hipotecaria préstamo préstamos prestamista cuenta cuentas cuenta</textarea>
+  <div class="toolbar">
+    <button class="btn" id="merge1">Merge</button>
+    <button class="btn" id="merge10">Merge ×10</button>
+    <button class="btn sec" id="reset">Reset</button>
+    <span class="stats"><span>merges <b id="s-m" class="num">0</b></span><span>vocab <b id="s-v" class="num">0</b></span><span>tokens in stream <b id="s-t" class="num">0</b></span><span>compression <b id="s-c" class="num">1.00</b></span></span>
+  </div>
+  <div class="stream" id="stream" aria-live="polite"></div>
+  <div class="split">
+    <div>
+      <div class="eyebrow" style="margin-bottom:.5rem">Pair counts, top 6. Next merge in orange.</div>
+      <div class="pairs" id="pairs"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <div class="eyebrow">Encode a new word with the merges learned so far</div>
+      <input type="text" id="probe" value="hipotecarias" aria-label="Word to encode">
+      <div class="stream" id="probe-out"></div>
+      <p style="font-size:.9rem;color:var(--muted)" id="probe-note"></p>
+    </div>
+  </div>
+  <p style="font-size:.9rem;color:var(--muted)">This lab merges Unicode characters so you can read the chips. Real GPT tokenizers merge raw bytes; section 03 explains why.</p>
+</div></div>
+<section class="wrap" style="margin-top:1.5rem">
+  <p class="callout">Two things to notice. Merges <strong>compound</strong>: <code>hi</code> + <code>p</code> only becomes possible after <code>h</code> + <code>i</code> exists, which is why encoding must replay merges in the order they were learned. And BPE is <strong>greedy</strong>: it never asks whether <code>ipo</code> is a meaningful unit, only whether it was frequent. That is where <code>hip · otec · ario</code> comes from.</p>
+</section>
+
+<section class="wrap">
+  <div class="step">03 · BYTES, NOT CHARACTERS</div>
+  <h2>Why GPT starts from 256</h2>
+  <p>Character-level BPE needs a base symbol for every character it might meet, and Unicode has 150,000. GPT-2's trick: operate on the <strong>UTF-8 bytes</strong>. The base vocabulary is exactly 256, any text in any script is representable, and there is no such thing as an unknown token. The cost is that non-ASCII characters start as several tokens.</p>
+</section>
+<div class="bench"><div class="panel">
+  <div class="bytes" id="bytes"></div>
+  <p class="callout" style="margin-top:.3rem">One more thing real tokenizers do: the space attaches to the <em>following</em> word. In cl100k, <code>Hello</code> is id 9906 and <code>&nbsp;Hello</code> (with the leading space) is id 22691, a different token. Two spaces before it become <code>' '</code> + <code>' Hello'</code>. That is why prompts that end with a trailing space behave oddly: you have handed the model half a token.</p>
+</div></div>
+
+<section class="wrap">
+  <div class="step">04 · THE MULTILINGUAL TAX</div>
+  <h2>The same sentence costs more outside English</h2>
+  <p>Six versions of one banking sentence, tokenized with three real OpenAI vocabularies. The bars show the token count <strong>relative to the English version</strong> under the same tokenizer. Hover a bar for raw counts.</p>
+</section>
+<div class="bench"><div class="panel" style="position:relative">
+  <div class="chart-head"><h3>Cost multiplier vs English, same meaning</h3>
+    <div class="legend"><span><i style="background:var(--c1)"></i>GPT-2 · 50k</span><span><i style="background:var(--c2)"></i>GPT-4 cl100k · 100k</span><span><i style="background:var(--c3)"></i>GPT-4o o200k · 200k</span></div></div>
+  <svg class="chart" id="chart" viewBox="0 0 900 300" role="img" aria-label="Grouped bar chart of token cost multiplier versus English for six texts under three tokenizers"></svg>
+  <div class="tip" id="tip" hidden></div>
+  <details><summary>Table view: raw token counts</summary>
+    <div class="tbl" style="margin-top:.6rem"><table id="datatable"></table></div>
+  </details>
+</div></div>
+<section class="wrap" style="margin-top:1.5rem">
+  <p class="callout">Two lessons in one chart. Spanish costs 30–65% more than English depending on the tokenizer, so a Spanish document eats more of your context window and more of your budget for the same content. And growing the vocabulary from 50k to 200k mostly buys fairness for other scripts: Korean drops from 4.7× to 1.6×, while English barely moves.</p>
+</section>
+
+<section class="wrap">
+  <div class="step">05 · VOCABULARY SIZE IS A DIAL</div>
+  <h2>Bigger vocabulary, shorter sequences, fatter embedding table</h2>
+  <p>Every token id needs a row in the embedding matrix: <code>vocab × d_model</code> parameters, and the same again for the output layer unless the weights are tied. Move the model width and see what the three vocabularies cost, next to how many tokens they need for the Spanish sentence above.</p>
+</section>
+<div class="bench"><div class="panel">
+  <div class="ctl"><label for="dmodel">d_model <output id="dmodel-o" class="num">4096</output></label><input type="range" id="dmodel" min="512" max="8192" step="512" value="4096"></div>
+  <div class="tbl"><table id="vocabtable"></table></div>
+  <p style="font-size:.9rem;color:var(--muted)">Between GPT-2's vocabulary and GPT-4o's, at d_model = 4096, the embedding table alone differs by about 600M parameters. In exchange the Spanish sentence needs 25% fewer forward passes to generate. Vocabulary sizes keep growing because inference cost scales with sequence length, and parameters in an embedding table are cheap to store and cheap to compute.</p>
+</div></div>
+
+<section class="wrap">
+  <div class="step">06 · LAB B</div>
+  <h2>BPE counts. WordPiece asks "is this surprising?"</h2>
+  <p>BERT's WordPiece uses the same merge loop with a different score. BPE merges the pair with the highest <code>count(A,B)</code>. WordPiece merges the pair with the highest <code>count(A,B) / (count(A) · count(B))</code>: how much more often A and B appear together than you would expect if they were independent. Adjust the counts and see the two algorithms disagree.</p>
+</section>
+<div class="bench"><div class="panel">
+  <div class="split">
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <div class="eyebrow">Pair 1 · <code>("hipo","teca")</code></div>
+      <div class="ctl"><label for="p1c">pair count <output id="p1c-o" class="num">40</output></label><input type="range" id="p1c" min="1" max="200" value="40"></div>
+      <div class="ctl"><label for="p1a">count(A) <output id="p1a-o" class="num">45</output></label><input type="range" id="p1a" min="1" max="2000" value="45"></div>
+      <div class="ctl"><label for="p1b">count(B) <output id="p1b-o" class="num">50</output></label><input type="range" id="p1b" min="1" max="2000" value="50"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <div class="eyebrow">Pair 2 · <code>("e"," ")</code></div>
+      <div class="ctl"><label for="p2c">pair count <output id="p2c-o" class="num">120</output></label><input type="range" id="p2c" min="1" max="200" value="120"></div>
+      <div class="ctl"><label for="p2a">count(A) <output id="p2a-o" class="num">1500</output></label><input type="range" id="p2a" min="1" max="2000" value="1500"></div>
+      <div class="ctl"><label for="p2b">count(B) <output id="p2b-o" class="num">1800</output></label><input type="range" id="p2b" min="1" max="2000" value="1800"></div>
+    </div>
+  </div>
+  <div class="tbl"><table id="wptable"></table></div>
+  <p class="callout" id="wp-note"></p>
+</div></div>
+
+<section class="wrap">
+  <div class="step">07 · YOUR BUILD</div>
+  <h2>Write byte-level BPE yourself</h2>
+  <p>Stubs and 16 tests are in <code>learning-artifacts/10-01-tokenizers/</code>. Everything fails right now. Standard library only. If you get stuck, ask me for a hint or a review, not the code.</p>
+  <pre>cd "~/Documents/Proyectos Personales/AI-Education/learning-artifacts/10-01-tokenizers"
+../../ai-engineering-from-scratch/.venv/bin/python -m unittest discover tests -v</pre>
+  <ol class="plain">
+    <li><code>get_pairs(tokens)</code>: count adjacent pairs. <code>collections.Counter</code> does most of the work.</li>
+    <li><code>merge_pair(tokens, pair, new_id)</code>: one left-to-right pass, replacing non-overlapping matches.</li>
+    <li><code>BPETokenizer.__init__</code>: the 256-byte base vocabulary.</li>
+    <li><code>train(text, num_merges)</code>: the loop from Lab A, on <code>text.encode("utf-8")</code>. Stop early when no pair repeats.</li>
+    <li><code>encode</code> / <code>decode</code>: replay merges in learned order; concatenate bytes and decode with <code>errors="replace"</code>.</li>
+    <li><code>wordpiece_score</code> and <code>fertility</code>: the two formulas from sections 04 and 06.</li>
+  </ol>
+  <p>Suggested order: primitives first (tests 1–4), then the class, then the metrics. When they all pass, run the repo's version, <code>phases/10-llms-from-scratch/01-tokenizers/code/main.py</code>, and compare its <code>train</code> loop with yours: it has no early-stop, so it will happily create tokens that are never reused. Decide whether you think that matters.</p>
+</section>
+
+<section class="wrap">
+  <div class="step">08 · CHECK YOURSELF</div>
+  <h2>Five questions</h2>
+  <p class="score" id="qscore">0 / 5 answered</p>
+  <div id="quiz"></div>
+</section>
+
+<section class="wrap">
+  <div class="step">09 · BACK TO YOUR WORK</div>
+  <h2>Where this touches a KB and RAG system</h2>
+  <ul class="plain">
+    <li><strong>Chunking.</strong> If you chunk documents by characters or words, chunks in Spanish carry fewer tokens of budget than you think. Chunk by tokens, and use the tokenizer of the model that will read the chunk.</li>
+    <li><strong>Two tokenizers per pipeline.</strong> Your embedding model and your generator almost certainly have different tokenizers. A chunk that fits one may not fit the other.</li>
+    <li><strong>Identifiers and codes.</strong> Account numbers, IBANs and product codes fragment into many tokens with no semantic value. Expect retrieval on them to behave differently from retrieval on prose.</li>
+    <li><strong>Cost.</strong> Your per-document cost is 1.3–1.6× what an English benchmark suggests. Measure it with tiktoken on your own corpus rather than trusting published averages.</li>
+  </ul>
+  <p class="callout warn">When your tests pass, write a 3–5 line note: one thing you believed about tokens that turned out to be wrong, and one decision in your real pipeline you would now make differently.</p>
+</section>
+
+<footer class="wrap">
+  <span>Phase 10 · Lesson 01 · next: 10/02 Building a tokenizer</span>
+  <span>Token counts measured with tiktoken 2026-09-24</span>
+</footer>
+</main>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const chip = (t, cls='') => `<span class="tok ${cls}">${esc(t)}</span>`;
+
+  /* Predict */
+  const pr = $('predict');
+  pr.addEventListener('click', e => { const b = e.target.closest('.opt'); if(!b) return;
+    pr.querySelectorAll('.opt').forEach(o => { o.disabled = true; if(o.hasAttribute('data-right')) o.classList.add('right'); });
+    if(!b.hasAttribute('data-right')) b.classList.add('wrong'); $('predict-reveal').hidden = false; });
+
+  /* 01 strategies (cl100k split measured with tiktoken) */
+  const word = 'preaprobación';
+  const strat = [
+    ['word-level', [word], '1 token, if it is in the vocabulary. Otherwise [UNK].'],
+    ['character', [...word], `${[...word].length} tokens`],
+    ['subword (cl100k)', ['pre','ap','rob','ación'], '4 tokens']
+  ];
+  $('strategies').innerHTML = strat.map(([l, parts, note]) =>
+    `<span class="lbl">${l}</span><span class="stream">${parts.map((p,i)=>chip(p, i%2?'g2':'g1')).join('')}</span><span class="cnt">${note}</span>`).join('');
+
+  /* 02 BPE stepper (character-level for readability) */
+  let toks = [], merges = [], gen = new Map();
+  const pairs = arr => { const c = new Map(); for(let i=0;i<arr.length-1;i++){ const k = arr[i]+'\u0000'+arr[i+1]; c.set(k,(c.get(k)||0)+1);} return c; };
+  const best = c => { let b=null, bv=1; for(const [k,v] of c) if(v>bv){b=k;bv=v;} return b; }; // first max, must repeat
+  const apply = (arr, k) => { const [a,b] = k.split('\u0000'); const out=[]; for(let i=0;i<arr.length;i++){ if(i<arr.length-1&&arr[i]===a&&arr[i+1]===b){out.push(a+b);i++;} else out.push(arr[i]); } return out; };
+  let baseLen = 0;
+  function reset(){ toks = [...$('corpus').value]; baseLen = toks.length; merges = []; gen = new Map(); draw(); }
+  function draw(){
+    const c = pairs(toks), win = best(c);
+    const [wa, wb] = win ? win.split('\u0000') : [null,null];
+    const hits = new Set();
+    if(win) for(let i=0;i<toks.length-1;i++) if(toks[i]===wa && toks[i+1]===wb){ hits.add(i); hits.add(i+1); i++; }
+    let html = '';
+    for(let i=0;i<toks.length;i++){
+      const t = toks[i]; const g = gen.get(t)||0; const cls = t.trim()===''? 'sp' : (g? 'g'+Math.min(5,g):'');
+      html += chip(t.replace(/ /g,'␣'), cls + (hits.has(i)?' hit':''));
+    }
+    $('stream').innerHTML = html;
+    const top = [...c.entries()].sort((x,y)=>y[1]-x[1]).slice(0,6); const mx = top.length? top[0][1] : 1;
+    $('pairs').innerHTML = top.map(([k,v]) => { const [a,b]=k.split('\u0000'); const w = k===win; return `<span class="${w?'win':''}">(${esc(a.replace(/ /g,'␣'))}, ${esc(b.replace(/ /g,'␣'))})</span><div class="bar" style="width:${v/mx*100}%${w?';background:var(--c2)':''}"></div><span class="num ${w?'win':''}">${v}</span>`; }).join('') || '<span style="color:var(--muted)">no pair repeats: BPE stops</span>';
+    const vocab = new Set(toks); merges.forEach(m => vocab.add(m.join('')));
+    $('s-m').textContent = merges.length; $('s-v').textContent = new Set([...$('corpus').value]).size + merges.length;
+    $('s-t').textContent = toks.length; $('s-c').textContent = (toks.length/baseLen).toFixed(2);
+    $('merge1').disabled = $('merge10').disabled = !win;
+    probe();
+  }
+  function stepOnce(){ const win = best(pairs(toks)); if(!win) return false; const [a,b] = win.split('\u0000'); merges.push([a,b]); gen.set(a+b, Math.max(gen.get(a)||0, gen.get(b)||0)+1); toks = apply(toks, win); return true; }
+  $('merge1').addEventListener('click', () => { stepOnce(); draw(); });
+  $('merge10').addEventListener('click', () => { for(let i=0;i<10;i++) if(!stepOnce()) break; draw(); });
+  $('reset').addEventListener('click', reset);
+  $('corpus').addEventListener('input', reset);
+  function probe(){
+    let w = [...$('probe').value]; for(const [a,b] of merges) w = apply(w, a+'\u0000'+b);
+    $('probe-out').innerHTML = w.map(t => chip(t, gen.get(t)? 'g'+Math.min(5,gen.get(t)) : '')).join('');
+    $('probe-note').textContent = `${[...$('probe').value].length} characters → ${w.length} tokens after ${merges.length} merges, replayed in learned order.`;
+  }
+  $('probe').addEventListener('input', probe);
+  reset();
+
+  /* 03 bytes */
+  const enc = new TextEncoder();
+  const samples = ['a','ñ','€','客','🦙'];
+  $('bytes').innerHTML = samples.map(ch => { const b = [...enc.encode(ch)]; return `<span class="ch">${ch}</span><span class="b">${b.map(x=>`<span>${x}</span>`).join('')} <span style="border:0;background:none;color:var(--muted)">${b.length} byte${b.length>1?'s':''}</span></span>`; }).join('');
+
+  /* 04 chart: measured with tiktoken */
+  const data = {
+    labels: ['English','Spanish','German','Python','Chinese','Korean'],
+    texts: ['The customer requested a mortgage pre-approval and a statement of the account balance.','El cliente solicitó una preaprobación hipotecaria y un extracto del saldo de la cuenta.','Der Kunde beantragte eine Hypothekenvorabgenehmigung und einen Kontoauszug.','def balance(acct): return sum(t.amount for t in acct.transactions if t.settled)','客户申请了抵押贷款预批和账户余额对账单。','고객이 주택담보대출 사전승인과 계좌 잔액 명세서를 요청했습니다.'],
+    series: [ {name:'GPT-2 · 50k', color:'var(--c1)', counts:[17,28,28,26,48,80]},
+              {name:'GPT-4 cl100k · 100k', color:'var(--c2)', counts:[16,22,23,20,25,38]},
+              {name:'GPT-4o o200k · 200k', color:'var(--c3)', counts:[16,21,19,20,15,25]} ]
+  };
+  (function drawChart(){
+    const W=900,H=300,L=44,R=12,T=16,B=40, pw=W-L-R, ph=H-T-B;
+    const groups = data.labels.length, gw = pw/groups, bw = Math.min(26,(gw-18)/3), maxV = 5;
+    const y = v => T + ph - v/maxV*ph;
+    let s = '';
+    for(let v=0; v<=maxV; v++) s += `<line class="grid" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}×</text>`;
+    s += `<line class="base" x1="${L}" x2="${W-R}" y1="${y(1)}" y2="${y(1)}"/><text x="${W-R}" y="${y(1)-5}" text-anchor="end">English = 1×</text>`;
+    data.labels.forEach((lab,g) => {
+      const x0 = L + g*gw + (gw - (3*bw+4))/2;
+      data.series.forEach((se,k) => {
+        const ratio = se.counts[g]/se.counts[0]; const yy = y(ratio);
+        s += `<rect class="bar" x="${x0+k*(bw+2)}" y="${yy}" width="${bw}" height="${y(0)-yy}" fill="${se.color}" data-g="${g}" data-k="${k}"><title>${lab} · ${se.name}: ${se.counts[g]} tokens (${ratio.toFixed(2)}× English)</title></rect>`;
+        if(ratio>=1.5 || g===0) s += `<text x="${x0+k*(bw+2)+bw/2}" y="${yy-4}" text-anchor="middle">${ratio.toFixed(1)}</text>`;
+      });
+      s += `<text x="${L+g*gw+gw/2}" y="${H-14}" text-anchor="middle" style="fill:var(--ink)">${lab}</text>`;
+    });
+    $('chart').innerHTML = s;
+    const tip = $('tip'), panel = $('chart').parentElement;
+    $('chart').addEventListener('mousemove', e => { const r = e.target.closest('rect'); if(!r){ tip.hidden = true; return; }
+      const g=+r.dataset.g, k=+r.dataset.k, se=data.series[k]; tip.textContent = `${data.labels[g]} · ${se.name}: ${se.counts[g]} tokens, ${(se.counts[g]/se.counts[0]).toFixed(2)}×`;
+      const pb = panel.getBoundingClientRect(); tip.style.left = (e.clientX-pb.left)+'px'; tip.style.top = (e.clientY-pb.top)+'px'; tip.hidden = false; });
+    $('chart').addEventListener('mouseleave', () => tip.hidden = true);
+    $('datatable').innerHTML = `<thead><tr><th>Text</th><th>Chars</th>${data.series.map(s=>`<th>${s.name}</th>`).join('')}</tr></thead><tbody>` +
+      data.labels.map((l,g)=>`<tr><td>${l}<br><span style="font-size:.78rem;color:var(--muted)">${esc(data.texts[g])}</span></td><td class="n">${[...data.texts[g]].length}</td>${data.series.map(s=>`<td class="n">${s.counts[g]}</td>`).join('')}</tr>`).join('') + '</tbody>';
+  })();
+
+  /* 05 vocab dial */
+  const vocabs = [['GPT-2',50257,28],['GPT-4 cl100k',100256,22],['GPT-4o o200k',200019,21]];
+  function vocabDraw(){ const d = +$('dmodel').value; $('dmodel-o').textContent = d;
+    $('vocabtable').innerHTML = `<thead><tr><th>Tokenizer</th><th>Vocab</th><th>Embedding params (vocab × d)</th><th>Spanish sentence</th></tr></thead><tbody>` +
+      vocabs.map(([n,v,t]) => `<tr><td>${n}</td><td class="n">${v.toLocaleString()}</td><td class="n">${(v*d/1e6).toFixed(0)} M</td><td class="n">${t} tokens</td></tr>`).join('') + '</tbody>'; }
+  $('dmodel').addEventListener('input', vocabDraw); vocabDraw();
+
+  /* 06 WordPiece lab */
+  const ids = ['p1c','p1a','p1b','p2c','p2a','p2b'];
+  function wp(){ const v = Object.fromEntries(ids.map(i => [i, +$(i).value])); ids.forEach(i => $(i+'-o').textContent = v[i]);
+    const s1 = v.p1c/(v.p1a*v.p1b), s2 = v.p2c/(v.p2a*v.p2b);
+    const bpe = v.p1c>=v.p2c ? 1 : 2, wpw = s1>=s2 ? 1 : 2;
+    $('wptable').innerHTML = `<thead><tr><th>Criterion</th><th>Pair 1 ("hipo","teca")</th><th>Pair 2 ("e"," ")</th><th>Merges</th></tr></thead><tbody>
+      <tr><td>BPE: count(A,B)</td><td class="n">${v.p1c}</td><td class="n">${v.p2c}</td><td>Pair ${bpe}</td></tr>
+      <tr><td>WordPiece: count(A,B) / (count(A)·count(B))</td><td class="n">${s1.toExponential(2)}</td><td class="n">${s2.toExponential(2)}</td><td>Pair ${wpw}</td></tr></tbody>`;
+    $('wp-note').textContent = bpe!==wpw ? `They disagree. "e" followed by a space is everywhere, so BPE grabs it, but both halves are so common that seeing them together is no surprise. "hipo"+"teca" is rarer, yet almost every "hipo" is followed by "teca": that is a real unit, and WordPiece merges it first.` : `With these counts both criteria pick the same pair. Push count(A) and count(B) of pair 2 up, or its pair count down, to make them split.`; }
+  ids.forEach(i => $(i).addEventListener('input', wp)); wp();
+
+  /* 08 quiz */
+  const Q = [
+    { q:'Why must encode() replay the merges in the exact order they were learned?', o:['Because later merges are more frequent','Because a later merge can only match tokens that earlier merges created','Because dictionaries are unordered','It does not matter, any order gives the same result'], a:1, w:'Merge 7 might be ("th","e"). The token "th" only exists after merge 2. Skip or reorder, and "the" can never form.' },
+    { q:'A byte-level BPE tokenizer with 100k vocabulary meets a Thai sentence it has never seen a single example of. What happens?', o:['It emits [UNK] for every word','It crashes on the encoding','It falls back to one token per UTF-8 byte, so the text is long but representable','It transliterates to Latin characters'], a:2, w:'The 256 base bytes cover every possible input. Nothing is unknown; unseen scripts are just expensive.' },
+    { q:'Which statement about vocabulary size is true?', o:['A bigger vocabulary always makes the model smarter','A bigger vocabulary shortens sequences but enlarges the embedding and output matrices','A smaller vocabulary means fewer forward passes at generation time','Vocabulary size has no effect on non-English text'], a:1, w:'Vocabulary is a dial between sequence length and parameter count. The 2020s trend toward 128k–200k vocabularies is mostly about shorter sequences and fairer coverage of other scripts.' },
+    { q:'BPE and WordPiece both look at pair ("e"," "), seen 120 times, where "e" and " " each appear ~1500 times. Which is more likely to merge it?', o:['BPE, because the raw count is high','WordPiece, because the pair is common','Both equally','Neither, spaces are never merged'], a:0, w:'WordPiece divides by count(A)·count(B), so a pair of two very common symbols scores low: their co-occurrence is expected, not surprising. BPE only sees the 120.' },
+    { q:'Your RAG pipeline chunks Spanish documents at 500 words for a model with a 100k English-heavy vocabulary. What is the likely consequence?', o:['Nothing, 500 words is 500 words','Chunks will use roughly 1.4× more tokens than an equivalent English chunk, so budgets sized on English assumptions overflow','Chunks will be shorter than expected','Retrieval quality improves because Spanish has more tokens'], a:1, w:'Measured above: 22 tokens for the Spanish sentence against 16 for English on cl100k. Chunk by tokens, with the reader model\'s tokenizer.' }
+  ];
+  const quiz = $('quiz'); let answered = 0, right = 0;
+  Q.forEach((item, qi) => { const box = document.createElement('div'); box.className = 'q';
+    box.innerHTML = `<h3>${qi+1}. ${item.q}</h3><div class="opts">${item.o.map((t,k)=>`<button class="opt" data-k="${k}">${t}</button>`).join('')}</div><p class="why" hidden>${item.w}</p>`;
+    box.querySelector('.opts').addEventListener('click', e => { const b = e.target.closest('.opt'); if(!b||b.disabled) return; const k = +b.dataset.k;
+      box.querySelectorAll('.opt').forEach((o,j) => { o.disabled = true; if(j===item.a) o.classList.add('right'); });
+      if(k!==item.a) b.classList.add('wrong'); else right++; answered++; box.querySelector('.why').hidden = false;
+      $('qscore').textContent = `${answered} / ${Q.length} answered · ${right} correct`; });
+    quiz.appendChild(box); });
+})();
+</script>

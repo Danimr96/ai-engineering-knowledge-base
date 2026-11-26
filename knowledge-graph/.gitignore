@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+# per-machine Obsidian window state
+vault/.obsidian/workspace*.json

@@ -1,0 +1,495 @@
+<title>Five Green Scenarios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --ink:#15202B; --muted:#5A6776; --line:#D5DCE3;
+  --accent:#2B55C9; --accent-soft:#DDE5FA; --pass:#1D8657; --pass-soft:#DCF1E6;
+  --fail:#C23B2A; --fail-soft:#F8E1DD; --warn:#A86B12; --warn-soft:#F6EAD3;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1318; --surface:#161E27; --ink:#E4EAF0; --muted:#93A0AD; --line:#2A3542;
+    --accent:#86A6FF; --accent-soft:#1E2A45; --pass:#4CC38A; --pass-soft:#14301F;
+    --fail:#F07564; --fail-soft:#3A1C18; --warn:#E3A94B; --warn-soft:#352812;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1318; --surface:#161E27; --ink:#E4EAF0; --muted:#93A0AD; --line:#2A3542;
+  --accent:#86A6FF; --accent-soft:#1E2A45; --pass:#4CC38A; --pass-soft:#14301F;
+  --fail:#F07564; --fail-soft:#3A1C18; --warn:#E3A94B; --warn-soft:#352812;
+}
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); font-family:var(--body); font-size:18px; line-height:1.6; padding-inline:20px; padding-block:40px 80px}
+.wrap{max-width:700px; margin-inline:auto}
+.bench{max-width:980px; margin-inline:auto}
+h1,h2,h3{font-family:var(--display); line-height:1.15; text-wrap:balance; margin:0}
+h1{font-size:clamp(2.2rem,6vw,3.4rem); font-weight:700; letter-spacing:-0.02em}
+h2{font-size:1.65rem; font-weight:700; letter-spacing:-0.01em}
+h3{font-size:1.1rem; font-weight:700}
+p{margin:0}
+.flow{display:flex; flex-direction:column; gap:1rem}
+section{display:flex; flex-direction:column; gap:1.25rem; margin-block:3.5rem 0}
+.eyebrow{font-family:var(--mono); font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.step{font-family:var(--mono); font-size:.8rem; color:var(--accent); letter-spacing:.06em}
+.lede{font-size:1.2rem; color:var(--muted)}
+code,.mono{font-family:var(--mono); font-size:.86em}
+.num{font-variant-numeric:tabular-nums}
+strong{font-weight:600}
+a{color:var(--accent)}
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:1.5rem; display:flex; flex-direction:column; gap:1.1rem}
+.callout{border-left:3px solid var(--accent); padding:.2rem 0 .2rem 1rem; color:var(--ink)}
+.callout.warn{border-color:var(--warn)}
+
+/* predict */
+.opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.6rem}
+.opt{font:inherit; font-size:1rem; text-align:left; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:.7rem .9rem; cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.opt.right{background:var(--pass-soft); border-color:var(--pass)}
+.opt.wrong{background:var(--fail-soft); border-color:var(--fail)}
+.opt[disabled]{cursor:default}
+.reveal{background:var(--accent-soft); border-radius:8px; padding:1rem 1.1rem}
+
+/* pipeline */
+.pipe{display:flex; flex-wrap:wrap; align-items:stretch; gap:.4rem}
+.pipe .node{flex:1 1 110px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:.7rem .8rem; display:flex; flex-direction:column; gap:.2rem}
+.pipe .node b{font-family:var(--display); font-size:1rem}
+.pipe .node span{font-size:.85rem; color:var(--muted); line-height:1.35}
+.pipe .node.hot{border-color:var(--accent); background:var(--accent-soft)}
+.pipe .arrow{align-self:center; color:var(--muted); font-family:var(--mono)}
+
+/* labs */
+.lab-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:.5rem}
+.controls{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem 1.5rem}
+.ctl{display:flex; flex-direction:column; gap:.3rem}
+.ctl label{font-family:var(--mono); font-size:.78rem; color:var(--muted); display:flex; justify-content:space-between}
+.ctl output{color:var(--ink); font-weight:600}
+input[type=range]{width:100%; accent-color:var(--accent)}
+input[type=number]{font:inherit; font-family:var(--mono); font-size:.95rem; width:100%; padding:.4rem .5rem; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink)}
+.presets{display:flex; flex-wrap:wrap; gap:.5rem}
+.chip{font-family:var(--mono); font-size:.78rem; background:var(--bg); color:var(--ink); border:1px solid var(--line); border-radius:999px; padding:.35rem .8rem; cursor:pointer}
+.chip:hover{border-color:var(--accent); color:var(--accent)}
+
+.axis{position:relative; height:74px; margin-inline:6px}
+.axis .track{position:absolute; left:0; right:0; top:26px; height:6px; background:var(--line); border-radius:3px}
+.axis .band{position:absolute; top:18px; height:22px; background:var(--accent-soft); border:2px solid var(--accent); border-radius:5px; transition:left .25s, width .25s}
+.axis .dot{position:absolute; top:22px; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:var(--accent); transition:left .25s}
+.axis .tick{position:absolute; top:48px; font-family:var(--mono); font-size:.72rem; color:var(--muted); transform:translateX(-50%)}
+.axis .tick::before{content:""; position:absolute; left:50%; top:-12px; width:1px; height:8px; background:var(--muted)}
+.axis .zero{position:absolute; top:6px; bottom:30px; width:2px; margin-left:-1px; background:var(--ink)}
+.axis .margin{position:absolute; top:6px; bottom:30px; width:0; border-left:2px dashed var(--warn)}
+.axis .shade{position:absolute; top:18px; height:22px; background:var(--fail-soft)}
+.readout{font-size:1.15rem}
+.readout .big{font-family:var(--display); font-weight:700; font-size:1.5rem}
+
+.bars{display:grid; grid-template-columns:5.5rem 1fr 4.2rem; gap:.5rem .8rem; align-items:center; font-family:var(--mono); font-size:.8rem}
+.bars .bar{position:relative; height:16px; background:var(--bg); border:1px solid var(--line); border-radius:4px; overflow:hidden}
+.bars .fill{position:absolute; inset:0 auto 0 0; background:var(--muted); opacity:.45; transition:width .25s}
+.bars .ci{position:absolute; top:0; bottom:0; border-inline:2px solid var(--ink); transition:left .25s, width .25s}
+.bars .v{text-align:right}
+
+.verdict{display:inline-flex; align-items:center; gap:.5rem; font-family:var(--mono); font-weight:600; font-size:.95rem; padding:.35rem .8rem; border-radius:6px; letter-spacing:.04em}
+.verdict.SHIP{background:var(--pass-soft); color:var(--pass)}
+.verdict.BLOCK{background:var(--fail-soft); color:var(--fail)}
+.verdict.INCONCLUSIVE{background:var(--warn-soft); color:var(--warn)}
+
+/* graders */
+.graders{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.8rem}
+.grader{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:1rem; display:flex; flex-direction:column; gap:.5rem}
+.grader.pick{border:2px solid var(--pass)}
+.meta{display:grid; grid-template-columns:auto 1fr; gap:.1rem .7rem; font-family:var(--mono); font-size:.75rem; color:var(--muted)}
+.meta dd{margin:0; color:var(--ink)}
+.grader p{font-size:.95rem}
+
+.tbl{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:.95rem; min-width:560px}
+th,td{text-align:left; padding:.6rem .7rem; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-family:var(--mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:400}
+.tag{font-family:var(--mono); font-size:.72rem; padding:.15rem .5rem; border-radius:4px; white-space:nowrap}
+.tag.det{background:var(--pass-soft); color:var(--pass)}
+.tag.judge{background:var(--accent-soft); color:var(--accent)}
+.tag.human{background:var(--warn-soft); color:var(--warn)}
+
+.duo{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:.8rem}
+.rub{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:1rem 1.1rem; display:flex; flex-direction:column; gap:.6rem}
+.rub.bad{border-top:3px solid var(--fail)}
+.rub.good{border-top:3px solid var(--pass)}
+.rub ol{margin:0; padding-left:1.4rem; font-size:.92rem; display:flex; flex-direction:column; gap:.35rem}
+.rub .lbl{font-family:var(--mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase}
+.rub.bad .lbl{color:var(--fail)} .rub.good .lbl{color:var(--pass)}
+
+pre{margin:0; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:1rem 1.1rem; overflow-x:auto; font-family:var(--mono); font-size:.82rem; line-height:1.55}
+.todo{margin:0; padding-left:1.3rem; display:flex; flex-direction:column; gap:.5rem}
+
+.q{display:flex; flex-direction:column; gap:.7rem; padding-block:1.2rem; border-top:1px solid var(--line)}
+.q .opts{grid-template-columns:1fr}
+.q .why{font-size:.95rem; color:var(--muted)}
+.score{font-family:var(--mono); font-size:.85rem; color:var(--muted)}
+
+footer{margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--line); font-family:var(--mono); font-size:.75rem; color:var(--muted); display:flex; flex-wrap:wrap; justify-content:space-between; gap:.5rem}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+
+<main>
+<header class="wrap flow">
+  <div class="eyebrow">Block 1 · Evals &amp; security · Lesson 1 · source: phases/11-llm-engineering/10-evaluation</div>
+  <h1>Five green scenarios</h1>
+  <p class="lede">An eval is a measurement, and every measurement has error bars. Today you learn how wide yours are, how to tell a real regression from noise, and which grader to use for each check in D'Garage.</p>
+</header>
+
+<!-- 0. Predict -->
+<section class="wrap">
+  <div class="step">PREDICT FIRST</div>
+  <h2>What do 5 of 5 passing scenarios prove?</h2>
+  <p>D'Garage has five golden scenarios in FLUJO_PILOTO §16. Suppose all five pass. With 95% confidence, what is the lowest pass rate your qualifier could really have?</p>
+  <div class="opts" id="predict">
+    <button class="opt" data-k="a">At least 95%</button>
+    <button class="opt" data-k="b">At least 80%</button>
+    <button class="opt" data-k="c" data-right>At least 57%</button>
+    <button class="opt" data-k="d">Exactly 100%</button>
+  </div>
+  <div class="reveal" id="predict-reveal" hidden>
+    <strong>At least 57%.</strong> Five passes are fully compatible with a qualifier that fails 4 in 10 real conversations. Your five scenarios prove each path works once. They are acceptance tests. They say little about a failure rate. The lab below shows why.
+  </div>
+</section>
+
+<!-- 1. Mental model -->
+<section class="wrap">
+  <div class="step">01 · THE MENTAL MODEL</div>
+  <h2>Evals are a loop that ends in a decision</h2>
+  <p>Every eval, from a notebook script to a CI gate, has the same five steps. Most teams stop at step 3 and read the average. The two steps that matter most are the last two.</p>
+</section>
+<div class="bench" style="margin-top:1.25rem">
+  <div class="pipe" role="list">
+    <div class="node" role="listitem"><b>Cases</b><span>Golden, adversarial and real-traffic inputs</span></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="node" role="listitem"><b>Run</b><span>Same prompt version on every case, outputs stored</span></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="node" role="listitem"><b>Score</b><span>Assertions, LLM judge or human per check</span></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="node hot" role="listitem"><b>Compare</b><span>New vs baseline, with an interval on the difference</span></div>
+    <div class="arrow" aria-hidden="true">→</div>
+    <div class="node hot" role="listitem"><b>Decide</b><span>SHIP, BLOCK, or INCONCLUSIVE</span></div>
+  </div>
+</div>
+
+<!-- 2. Lab A -->
+<section class="wrap">
+  <div class="step">02 · LAB A</div>
+  <h2>How wide are your error bars?</h2>
+  <p>A pass rate measured on <em>n</em> cases is only an estimate. The <strong>Wilson interval</strong> gives the range the true rate could be in, and unlike the textbook formula it stays honest at 0% and 100%. Move the sliders.</p>
+</section>
+<div class="bench" style="margin-top:1.25rem">
+  <div class="panel">
+    <div class="lab-head"><h3>Wilson interval explorer</h3><span class="eyebrow">95% confidence</span></div>
+    <div class="controls">
+      <div class="ctl"><label for="an">Test cases (n) <output id="an-o" class="num">5</output></label><input type="range" id="an" min="0" max="100" value="0"></div>
+      <div class="ctl"><label for="ap">Observed pass rate <output id="ap-o" class="num">100%</output></label><input type="range" id="ap" min="0" max="100" value="100"></div>
+    </div>
+    <div class="presets">
+      <button class="chip" data-n="5" data-p="100">D'Garage today · 5/5</button>
+      <button class="chip" data-n="50" data-p="90">50 cases · 90%</button>
+      <button class="chip" data-n="200" data-p="90">200 cases · 90%</button>
+      <button class="chip" data-n="1000" data-p="90">1000 cases · 90%</button>
+    </div>
+    <div class="axis" id="a-axis" aria-hidden="true">
+      <div class="track"></div><div class="band" id="a-band"></div><div class="dot" id="a-dot"></div>
+    </div>
+    <p class="readout" id="a-read" aria-live="polite"></p>
+  </div>
+</div>
+<section class="wrap" style="margin-top:1.5rem">
+  <p class="callout">Rule of thumb: the interval width shrinks with √n. Four times the cases halves the error bar. To detect a 5-point drop you need around 200 cases. To compare two close prompts, you need 500 or more.</p>
+</section>
+
+<!-- 3. Graders -->
+<section class="wrap">
+  <div class="step">03 · WHO GRADES WHAT</div>
+  <h2>Pick the cheapest grader that can see the failure</h2>
+  <p>The repo lesson says you will use LLM-as-judge "90% of the time". <strong>For you, that's wrong</strong>, and you already know why: you made the D'Garage score deterministic on purpose. Anything code can check, code should check. It's free, instant and never flaky. Save the judge for qualities code can't see.</p>
+</section>
+<div class="bench" style="margin-top:1.25rem">
+  <div class="graders">
+    <div class="grader pick">
+      <h3>Deterministic assertions</h3>
+      <dl class="meta"><dt>cost</dt><dd>$0</dd><dt>speed</dt><dd>milliseconds</dd><dt>noise</dt><dd>none</dd></dl>
+      <p>Exact match, ranges, schema validation, state transitions, "no message sent after opt-out". Your first line of defence.</p>
+    </div>
+    <div class="grader">
+      <h3>LLM-as-judge</h3>
+      <dl class="meta"><dt>cost</dt><dd>~$2–25 per 1k calls</dd><dt>speed</dt><dd>minutes</dd><dt>noise</dt><dd>calibrate it</dd></dl>
+      <p>Tone, helpfulness, faithfulness to the listing. Needs an anchored rubric, and it has its own biases: it favours longer answers and whichever answer it sees first.</p>
+    </div>
+    <div class="grader">
+      <h3>Human review</h3>
+      <dl class="meta"><dt>cost</dt><dd>hours</dd><dt>speed</dt><dd>days</dd><dt>noise</dt><dd>ground truth</dd></dl>
+      <p>Only for calibrating the judge. Label 30–50 outputs yourself (or Rolo does), then check how often the judge agrees with you.</p>
+    </div>
+  </div>
+  <div class="tbl" style="margin-top:1rem">
+    <table>
+      <thead><tr><th>D'Garage check</th><th>Grader</th><th>How</th></tr></thead>
+      <tbody>
+        <tr><td>Lead score within ±5 of expected</td><td><span class="tag det">assertion</span></td><td><code>abs(actual - expected) &lt;= 5</code></td></tr>
+        <tr><td>Category is <em>caliente / tibio / frío / comunidad_b2b</em></td><td><span class="tag det">assertion</span></td><td>Exact match</td></tr>
+        <tr><td>Opt-out: zero messages after <code>BAJA</code></td><td><span class="tag det">assertion</span></td><td>Count outbound rows after the opt-out event</td></tr>
+        <tr><td>B2B path asks zero standard qualification questions</td><td><span class="tag det">assertion</span></td><td>No <code>ask_*</code> tool calls in the trace</td></tr>
+        <tr><td>Unparseable email ends in <code>revision_manual</code></td><td><span class="tag det">assertion</span></td><td>Final state equals expected</td></tr>
+        <tr><td>WhatsApp reply sounds warm and professional, in Spain Spanish</td><td><span class="tag judge">judge</span></td><td>Anchored 1–5 rubric (below)</td></tr>
+        <tr><td>Reply only mentions facts from the listing</td><td><span class="tag judge">judge</span></td><td>Pass/fail faithfulness check with the listing in the prompt</td></tr>
+        <tr><td>Is the judge's tone score trustworthy?</td><td><span class="tag human">human</span></td><td>Label 40 replies, measure agreement</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 4. Rubrics -->
+<section class="wrap">
+  <div class="step">04 · RUBRICS</div>
+  <h2>A judge is only as good as its anchors</h2>
+  <p>"Rate 1 to 5" leaves the judge to invent what a 3 means, and it invents something different on every call. Anchoring each level to <em>observable</em> behaviour cuts judge variance by roughly a third. Compare:</p>
+</section>
+<div class="bench" style="margin-top:1.25rem">
+  <div class="duo">
+    <div class="rub bad">
+      <span class="lbl">Unanchored</span>
+      <p><code>Rate from 1 to 5 how good the tone of this WhatsApp reply is.</code></p>
+      <p style="font-size:.92rem;color:var(--muted)">Two runs on the same reply return 3 and 4. You can't tell if the new prompt helped.</p>
+    </div>
+    <div class="rub good">
+      <span class="lbl">Anchored</span>
+      <ol reversed>
+        <li>Uses <em>usted/tú</em> consistently, greets by name, one clear next step, under 60 words, no emojis unless the lead used them.</li>
+        <li>As 5 but slightly long, or the next step is implied instead of stated.</li>
+        <li>Correct but generic: no name, or no next step.</li>
+        <li>Stiff or pushy, mixes <em>usted</em> and <em>tú</em>, or uses Latin American phrasing.</li>
+        <li>Rude, invents facts, or pressures the lead.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+<section class="wrap" style="margin-top:1.5rem">
+  <p class="callout">Comparing two prompt versions? Use a <strong>pairwise</strong> judge ("which reply is better, A or B?") and run it twice with the order swapped. It avoids the question of what a "4" means, and swapping the order cancels the judge's bias toward whichever answer it sees first.</p>
+</section>
+
+<!-- 5. Lab B -->
+<section class="wrap">
+  <div class="step">05 · LAB B</div>
+  <h2>The regression gate</h2>
+  <p>You changed the qualifier prompt. The old version passed 94% and the new one passes 88%. Is it worse, or is that noise? Don't compare the two averages. Build an interval on the <strong>difference</strong> (Newcombe's method, built from the two Wilson intervals), then apply three rules:</p>
+  <ul class="todo">
+    <li><span class="verdict BLOCK">BLOCK</span> the whole interval is below 0, so the new version is confidently worse.</li>
+    <li><span class="verdict SHIP">SHIP</span> the interval's lower end is above −margin, so any drop is smaller than you accept.</li>
+    <li><span class="verdict INCONCLUSIVE">INCONCLUSIVE</span> anything else. You don't know yet, so add cases.</li>
+  </ul>
+</section>
+<div class="bench" style="margin-top:1.25rem">
+  <div class="panel">
+    <div class="lab-head"><h3>Before vs after</h3><span id="b-verdict" class="verdict INCONCLUSIVE" aria-live="polite">—</span></div>
+    <div class="controls">
+      <div class="ctl"><label for="b-bp">Baseline passes</label><input type="number" id="b-bp" min="0" value="188"></div>
+      <div class="ctl"><label for="b-bn">Baseline cases</label><input type="number" id="b-bn" min="1" value="200"></div>
+      <div class="ctl"><label for="b-np">New passes</label><input type="number" id="b-np" min="0" value="176"></div>
+      <div class="ctl"><label for="b-nn">New cases</label><input type="number" id="b-nn" min="1" value="200"></div>
+      <div class="ctl"><label for="b-m">Accepted drop (margin) <output id="b-m-o" class="num">3 pts</output></label><input type="range" id="b-m" min="0" max="10" value="3"></div>
+    </div>
+    <div class="presets">
+      <button class="chip" data-b="5,5,5,5">5/5 vs 5/5</button>
+      <button class="chip" data-b="188,200,176,200">94% → 88% · 200 cases</button>
+      <button class="chip" data-b="180,200,176,200">90% → 88% · 200 cases</button>
+      <button class="chip" data-b="900,1000,905,1000">90% → 90.5% · 1000 cases</button>
+    </div>
+    <div class="bars" id="b-bars"></div>
+    <div>
+      <div class="eyebrow" style="margin-bottom:.3rem">Difference new − baseline, in points, with 95% interval</div>
+      <div class="axis" id="b-axis" aria-hidden="true"></div>
+    </div>
+    <p class="readout" id="b-read" aria-live="polite"></p>
+  </div>
+</div>
+
+<!-- 6. Build -->
+<section class="wrap">
+  <div class="step">06 · YOUR BUILD</div>
+  <h2>Write the gate yourself</h2>
+  <p>The stubs and 14 tests are ready in <code>learning-artifacts/01-evals/</code>. Every test fails right now. Your job is to make them all pass. <strong>Write it yourself.</strong> If you get stuck, ask me for a hint or a review, not the code.</p>
+  <pre>cd "~/Documents/Proyectos Personales/AI-Education/learning-artifacts/01-evals"
+../../ai-engineering-from-scratch/.venv/bin/python -m unittest discover tests -v</pre>
+  <ol class="todo">
+    <li><code>wilson_ci(successes, total)</code>: the interval from Lab A.</li>
+    <li><code>diff_ci(...)</code>: Newcombe's interval for the difference.</li>
+    <li><code>gate(...)</code>: the three rules from Lab B, with BLOCK checked first.</li>
+    <li><code>check_qualifier(expected, actual)</code>: the deterministic D'Garage assertions from section 03.</li>
+  </ol>
+  <p>The formulas, with p = s/n and z = 1.96:</p>
+  <pre>Wilson
+  denom  = 1 + z²/n
+  center = (p + z²/(2n)) / denom
+  half   = z · √( p(1−p)/n + z²/(4n²) ) / denom
+  → (max(0, center − half), min(1, center + half))
+
+Newcombe, for d = p_new − p_base
+  (l_b, u_b) = wilson(base)     (l_n, u_n) = wilson(new)
+  lower = d − √( (p_new − l_n)² + (u_b − p_base)² )
+  upper = d + √( (u_n − p_new)² + (p_base − l_b)² )</pre>
+  <p>Then compare with the repo's version in <code>phases/11-llm-engineering/10-evaluation/code/eval_framework.py</code>. Its <code>compare_eval_runs</code> flags a regression when the mean drops by more than 0.3, and ignores the intervals it just computed. Spot why that's a weaker gate than yours.</p>
+</section>
+
+<!-- 7. Quiz -->
+<section class="wrap">
+  <div class="step">07 · CHECK YOURSELF</div>
+  <h2>Five questions</h2>
+  <p class="score" id="qscore">0 / 5 answered</p>
+  <div id="quiz"></div>
+</section>
+
+<!-- 8. Transfer -->
+<section class="wrap">
+  <div class="step">08 · TRANSFER TO D'GARAGE</div>
+  <h2>Your homework in the real project</h2>
+  <ol class="todo">
+    <li>Grow the golden set from 5 scenarios to <strong>60 synthetic conversations</strong>, 12 per §16 path, varying the wording, the channel and the lead profile. Reuse <code>leads_sinteticos.json</code> as seeds.</li>
+    <li>Run <code>check_qualifier</code> on every conversation and store one row per case: prompt version, model, pass/fail per check.</li>
+    <li>Add the anchored tone rubric as the one LLM-judged check. Label 30 replies yourself first and measure how often the judge agrees.</li>
+    <li>Put <code>gate()</code> in CI for any change under <code>pilot/prompts/</code>. INCONCLUSIVE should fail the build with a message telling you to add cases.</li>
+  </ol>
+  <p class="callout warn">Write a 3–5 line transfer note when you're done: what changed in how you'll ship prompt changes. That note is the real evidence you learned this.</p>
+</section>
+
+<footer class="wrap">
+  <span>Lesson 1 of Block 1 · next: 05/27 LLM evaluation frameworks</span>
+  <span>Formulas: Wilson (1927), Newcombe (1998)</span>
+</footer>
+</main>
+
+<script>
+(function(){
+  const Z = 1.96;
+  function wilson(s, n){
+    if (n <= 0) return [0, 1];
+    const p = s / n, d = 1 + Z*Z/n;
+    const c = (p + Z*Z/(2*n)) / d;
+    const h = Z * Math.sqrt(p*(1-p)/n + Z*Z/(4*n*n)) / d;
+    return [Math.max(0, c-h), Math.min(1, c+h)];
+  }
+  function diff(bs, bn, ns, nn){
+    const pb = bs/bn, pn = ns/nn;
+    const [lb, ub] = wilson(bs, bn), [ln, un] = wilson(ns, nn);
+    const d = pn - pb;
+    return [d - Math.hypot(pn-ln, ub-pb), d, d + Math.hypot(un-pn, pb-lb)];
+  }
+  const pct = x => (x*100).toFixed(1).replace(/\.0$/, '') + '%';
+  const pts = x => (x >= 0 ? '+' : '−') + Math.abs(x*100).toFixed(1) + ' pts';
+
+  /* Predict */
+  const pr = document.getElementById('predict');
+  pr.addEventListener('click', e => {
+    const b = e.target.closest('.opt'); if (!b) return;
+    pr.querySelectorAll('.opt').forEach(o => { o.disabled = true; if (o.hasAttribute('data-right')) o.classList.add('right'); });
+    if (!b.hasAttribute('data-right')) b.classList.add('wrong');
+    document.getElementById('predict-reveal').hidden = false;
+  });
+
+  /* Lab A: log-scale n from 1..1000 */
+  const an = document.getElementById('an'), ap = document.getElementById('ap');
+  const toN = v => Math.max(1, Math.round(Math.pow(10, 3 * v / 100)));
+  const fromN = n => Math.round(100 * Math.log10(n) / 3);
+  const axisA = document.getElementById('a-axis');
+  [0,25,50,75,100].forEach(t => { const el = document.createElement('div'); el.className='tick'; el.style.left = t+'%'; el.textContent = t+'%'; axisA.appendChild(el); });
+  let forcedN = null;
+  function drawA(){
+    const n = forcedN || toN(+an.value), s = Math.round(n * (+ap.value) / 100);
+    const [lo, hi] = wilson(s, n);
+    document.getElementById('an-o').textContent = n;
+    document.getElementById('ap-o').textContent = pct(s/n) ;
+    const band = document.getElementById('a-band');
+    band.style.left = (lo*100)+'%'; band.style.width = ((hi-lo)*100)+'%';
+    document.getElementById('a-dot').style.left = (s/n*100)+'%';
+    document.getElementById('a-read').innerHTML =
+      `<span class="num">${s}/${n}</span> passed. The true pass rate is somewhere between <span class="big num">${pct(lo)}</span> and <span class="big num">${pct(hi)}</span>, an error bar <strong class="num">${((hi-lo)*100).toFixed(1)} points</strong> wide.`;
+  }
+  an.addEventListener('input', () => { forcedN = null; drawA(); }); ap.addEventListener('input', drawA);
+  document.querySelectorAll('[data-n]').forEach(c => c.addEventListener('click', () => { forcedN = +c.dataset.n; an.value = fromN(forcedN); ap.value = c.dataset.p; drawA(); }));
+  forcedN = 5; an.value = fromN(5); drawA();
+
+  /* Lab B */
+  const ids = ['b-bp','b-bn','b-np','b-nn'].map(i => document.getElementById(i));
+  const m = document.getElementById('b-m');
+  function drawB(){
+    let [bp, bn, np, nn] = ids.map(i => Math.max(0, Math.floor(+i.value || 0)));
+    bn = Math.max(1, bn); nn = Math.max(1, nn); bp = Math.min(bp, bn); np = Math.min(np, nn);
+    const margin = (+m.value)/100;
+    document.getElementById('b-m-o').textContent = m.value + ' pts';
+    const [lo, d, hi] = diff(bp, bn, np, nn);
+    const verdict = hi < 0 ? 'BLOCK' : (lo > -margin ? 'SHIP' : 'INCONCLUSIVE');
+    const vEl = document.getElementById('b-verdict'); vEl.className = 'verdict ' + verdict; vEl.textContent = verdict;
+
+    const rows = [['baseline', bp, bn], ['new', np, nn]].map(([name, s, n]) => {
+      const [l, u] = wilson(s, n);
+      return `<span>${name}</span><div class="bar"><div class="fill" style="width:${s/n*100}%"></div><div class="ci" style="left:${l*100}%;width:${(u-l)*100}%"></div></div><span class="v num">${pct(s/n)}</span>`;
+    }).join('');
+    document.getElementById('b-bars').innerHTML = rows;
+
+    const R = Math.max(0.1, Math.ceil(Math.max(Math.abs(lo), Math.abs(hi), margin) * 20) / 20);
+    const X = v => ((v + R) / (2*R) * 100);
+    const ticks = [-R, -R/2, 0, R/2, R].map(t => `<div class="tick" style="left:${X(t)}%">${t>0?'+':''}${Math.round(t*100)}</div>`).join('');
+    document.getElementById('b-axis').innerHTML =
+      `<div class="track"></div><div class="shade" style="left:0;width:${X(-margin)}%"></div>` +
+      `<div class="band" style="left:${X(lo)}%;width:${X(hi)-X(lo)}%"></div><div class="dot" style="left:${X(d)}%"></div>` +
+      `<div class="zero" style="left:${X(0)}%"></div><div class="margin" style="left:${X(-margin)}%"></div>` + ticks;
+
+    const why = {
+      BLOCK: `Even the best case (${pts(hi)}) is below zero. The new prompt is worse. Find which cases flipped from pass to fail.`,
+      SHIP: `The worst case (${pts(lo)}) is inside your accepted drop of ${m.value} points. Safe to ship.`,
+      INCONCLUSIVE: `The change could be anywhere from ${pts(lo)} to ${pts(hi)}. That range includes both "fine" and "unacceptable". Add cases or shrink the change.`
+    };
+    document.getElementById('b-read').innerHTML = `Measured change <strong class="num">${pts(d)}</strong>. ${why[verdict]}`;
+  }
+  ids.concat(m).forEach(i => i.addEventListener('input', drawB));
+  document.querySelectorAll('[data-b]').forEach(c => c.addEventListener('click', () => { c.dataset.b.split(',').forEach((v, k) => ids[k].value = v); drawB(); }));
+  drawB();
+
+  /* Quiz */
+  const Q = [
+    { q: "Your judge scores v2 at 4.3 and v1 at 4.1, averaged over 30 cases. What do you conclude?",
+      o: ["v2 is better, so ship it", "Nothing yet. Without an interval on the difference, 0.2 may be noise", "v1 is better because v2 might be overfitting", "Run it again until both runs agree"], a: 1,
+      w: "A difference of two averages with no interval tells you nothing. On 30 cases a 0.2 swing on a 1–5 scale is well within noise." },
+    { q: "Which D'Garage check should an LLM judge grade?",
+      o: ["Lead score within ±5 of expected", "No message sent after BAJA", "The WhatsApp reply sounds warm and professional", "The category equals comunidad_b2b"], a: 2,
+      w: "The other three can be checked by code, so code should check them: free, instant and not flaky. Tone is the one quality code can't see." },
+    { q: "Why is a pairwise judge (A vs B) often more reliable than 1–5 scoring when comparing two prompts?",
+      o: ["It's cheaper per call", "It avoids having to decide what a 3 or a 4 means", "It never has position bias", "It needs no rubric at all"], a: 1,
+      w: "Comparing is easier than placing an answer on an absolute scale. It still has position bias, which is why you run it twice with the order swapped." },
+    { q: "Your gate returns INCONCLUSIVE on a prompt change. What's the right move?",
+      o: ["Re-run the same eval until it says SHIP", "Ship it anyway, since it's not BLOCK", "Add cases, or knowingly accept the risk and record that decision", "Lower the margin to zero"], a: 2,
+      w: "Re-running until you get the answer you want is p-hacking. INCONCLUSIVE means the data can't tell. Get more data, or make the risk call explicitly." },
+    { q: "Several of your eval cases are copied from the few-shot examples in the system prompt. What goes wrong?",
+      o: ["Nothing, as long as they're good examples", "The eval measures memorisation of the prompt, not how the qualifier generalises", "The judge gets confused by the duplicates", "Tokens cost more"], a: 1,
+      w: "Keep eval data separate from anything the model sees at inference time, or you'll grade it on the answers you gave it." }
+  ];
+  const quiz = document.getElementById('quiz');
+  let answered = 0, right = 0;
+  Q.forEach((item, qi) => {
+    const box = document.createElement('div'); box.className = 'q';
+    box.innerHTML = `<h3>${qi+1}. ${item.q}</h3><div class="opts">${item.o.map((t, k) => `<button class="opt" data-k="${k}">${t}</button>`).join('')}</div><p class="why" hidden>${item.w}</p>`;
+    box.querySelector('.opts').addEventListener('click', e => {
+      const b = e.target.closest('.opt'); if (!b || b.disabled) return;
+      const k = +b.dataset.k;
+      box.querySelectorAll('.opt').forEach((o, j) => { o.disabled = true; if (j === item.a) o.classList.add('right'); });
+      if (k !== item.a) b.classList.add('wrong'); else right++;
+      answered++;
+      box.querySelector('.why').hidden = false;
+      document.getElementById('qscore').textContent = `${answered} / ${Q.length} answered · ${right} correct`;
+    });
+    quiz.appendChild(box);
+  });
+})();
+</script>

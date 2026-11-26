@@ -1,0 +1,10 @@
+{
+  "_comment": "Phase 19 groups its capstones into tracks that prerequisite strings refer to ('Track B foundations'). Upstream has no machine-readable table for this, so the ranges below were read off the lesson folder names. The source text is inconsistent (it calls both 20-29 and 30-37 'Track B foundations'), which is why edges built from a bare track reference get confidence 'low'. Edit freely; the build never overwrites this file.",
+  "19": {
+    "A": {"title": "Agent harness from scratch", "lessons": [20, 29], "note": "20-24 is sometimes called Track A1"},
+    "B": {"title": "GPT from scratch in PyTorch", "lessons": [30, 41], "note": "30-37 are the 'foundations' (tokenizer to pretrained weights); 38-41 fine-tuning and eval"},
+    "C": {"title": "Large-scale pre-training infrastructure", "lessons": [42, 49]},
+    "D": {"title": "Autonomous research agent", "lessons": [50, 57]},
+    "E": {"title": "Vision-language model from scratch", "lessons": [58, 63]}
+  }
+}

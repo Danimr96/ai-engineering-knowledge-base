@@ -1,0 +1,107 @@
+{
+  "collapse-filter": true,
+  "search": "",
+  "showTags": true,
+  "showAttachments": true,
+  "hideUnresolved": true,
+  "showOrphans": true,
+  "collapse-color-groups": true,
+  "colorGroups": [
+    {
+      "query": "tag:#status/planned",
+      "color": {
+        "a": 1,
+        "rgb": 14922561
+      }
+    },
+    {
+      "query": "path:Phases",
+      "color": {
+        "a": 1,
+        "rgb": 16273737
+      }
+    },
+    {
+      "query": "path:Tracks",
+      "color": {
+        "a": 1,
+        "rgb": 14380328
+      }
+    },
+    {
+      "query": "path:Lessons",
+      "color": {
+        "a": 1,
+        "rgb": 5809919
+      }
+    },
+    {
+      "query": "path:Concepts tag:#concept/glossary",
+      "color": {
+        "a": 1,
+        "rgb": 12356863
+      }
+    },
+    {
+      "query": "path:Concepts",
+      "color": {
+        "a": 1,
+        "rgb": 9147550
+      }
+    },
+    {
+      "query": "path:Categories",
+      "color": {
+        "a": 1,
+        "rgb": 13805823
+      }
+    },
+    {
+      "query": "path:Artifacts",
+      "color": {
+        "a": 1,
+        "rgb": 3789651
+      }
+    },
+    {
+      "query": "path:Resources",
+      "color": {
+        "a": 1,
+        "rgb": 7979263
+      }
+    },
+    {
+      "query": "path:Paths",
+      "color": {
+        "a": 1,
+        "rgb": 16754263
+      }
+    },
+    {
+      "query": "path:Myths",
+      "color": {
+        "a": 1,
+        "rgb": 16743282
+      }
+    },
+    {
+      "query": "path:\"My Notes\"",
+      "color": {
+        "a": 1,
+        "rgb": 15791868
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": true,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1.2,
+  "lineSizeMultiplier": 0.8,
+  "collapse-forces": true,
+  "centerStrength": 0.45,
+  "repelStrength": 12,
+  "linkStrength": 0.9,
+  "linkDistance": 220,
+  "scale": 0.022724640031665605,
+  "close": true
+}

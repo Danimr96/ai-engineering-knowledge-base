@@ -1,0 +1,23 @@
+{
+  "_comment": "Maps a Key Terms spelling (any case, punctuation ignored) to the glossary heading it means. Fill it top-down from build/report.md -> 'Unmatched key terms'. Only add an alias when you are sure the two are the same concept; a wrong alias silently merges two ideas. An alias whose target is not a glossary heading is reported in build/report.md and ignored.",
+  "Few-shot prompting": "Few-Shot",
+  "Few-shot learning": "Few-Shot",
+  "Zero-shot prompting": "Zero-Shot",
+  "Red team": "Red Teaming",
+  "Red-teaming": "Red Teaming",
+  "Distillation": "Knowledge Distillation",
+  "Learning rate scheduler": "Learning Rate Schedule",
+  "LR schedule": "Learning Rate Schedule",
+  "Canary": "Canary Release",
+  "Canary deployment": "Canary Release",
+  "Idempotency key": "Idempotency",
+  "Contamination": "Benchmark Contamination",
+  "Data contamination": "Benchmark Contamination",
+  "LLM-as-judge": "LLM-as-a-Judge",
+  "LLM as judge": "LLM-as-a-Judge",
+  "Prompt caching": "Prompt Cache",
+  "KV-cache": "KV Cache",
+  "kv_cache": "KV Cache",
+  "Function call": "Function Calling",
+  "Perplexity (PPL)": "Perplexity"
+}

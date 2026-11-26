@@ -1,0 +1,29 @@
+[project]
+name = "ai-education-kg"
+version = "0.1.0"
+description = "Knowledge graph of the AI Engineering from Scratch curriculum, exported as an Obsidian vault."
+readme = "README.md"
+requires-python = ">=3.12"
+# No runtime dependencies on purpose: the whole pipeline is standard library.
+# That keeps every line readable and makes the build reproducible anywhere.
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.uv]
+# This is an application, not a library: nothing to install into the venv.
+# (It also sidesteps a macOS quirk: uv marks its editable ``.pth`` files with
+# the "hidden" flag and Python 3.12.13 refuses to load hidden ``.pth`` files.)
+# Run it with ``./kg <command>`` or ``uv run python -m kg.cli <command>``.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# ``import kg`` resolves from the project root, without installing anything.
+pythonpath = ["."]
+# The smoke test on the real curriculum takes a few seconds and is marked so
+# you can run only the fast unit tests with ``-m "not slow"``.
+markers = ["slow: runs against the real upstream repository"]

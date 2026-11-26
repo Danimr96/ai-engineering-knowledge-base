@@ -1,0 +1,29 @@
+filters:
+  and:
+    - file.inFolder("Lessons")
+    - on_route == true
+views:
+  - type: table
+    name: My route
+    order:
+      - route_order
+      - file.name
+      - time_min
+      - status
+      - prereqs
+    sort:
+      - property: route_order
+        direction: ASC
+  - type: table
+    name: Not done yet
+    filters:
+      and:
+        - status != "done"
+    order:
+      - route_order
+      - file.name
+      - time_min
+      - status
+    sort:
+      - property: route_order
+        direction: ASC

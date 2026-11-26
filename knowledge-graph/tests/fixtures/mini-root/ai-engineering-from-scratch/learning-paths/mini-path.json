@@ -1,0 +1,7 @@
+{"schemaVersion": 1, "id": "mini-path", "title": "Mini Path", "summary": "Two lessons.", "estimatedMinutes": 150,
+ "lessons": [
+   {"order": 1, "path": "phases/07-transformers/02-self-attention", "minutes": 90, "required": true},
+   {"order": 2, "path": "phases/07-transformers/03-multi-head", "minutes": 60, "required": true},
+   {"order": 3, "path": "phases/99-missing/01-nope", "minutes": 1, "required": false}
+ ],
+ "optionalLessons": [{"order": 4, "path": "phases/01-math-foundations/04-calculus", "minutes": 60}]}
